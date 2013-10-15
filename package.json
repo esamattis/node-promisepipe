@@ -1,0 +1,29 @@
+{
+  "name": "promisepipe",
+  "version": "0.0.0",
+  "description": "Pipe node.js streams safely with Promises",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/epeli/node-promisepipe"
+  },
+  "keywords": [
+    "promise",
+    "q",
+    "stream"
+  ],
+  "author": "Esa-Matti Suuronen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/epeli/node-promisepipe/issues"
+  },
+  "dependencies": {
+    "q": "~0.9.7"
+  },
+  "devDependencies": {
+    "mocha": "~1.13.0"
+  }
+}
