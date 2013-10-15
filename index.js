@@ -5,6 +5,14 @@ var Q = require("q");
 function promiseFromStreams(streams) {
     return Q.all(streams.map(function(stream) {
         return Q.promise(function(resolve, reject) {
+
+            // process.stdout and process.stderr are not closed or ended
+            // after piping like other streams. So we must resolve them
+            // manually.
+            if (stream === process.stdout || stream === process.stderr) {
+                return resolve();
+            }
+
             stream.on("error", function(streamErr) {
                 var err = new Error(streamErr.message);
                 err.source = stream;

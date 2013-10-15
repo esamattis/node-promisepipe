@@ -53,6 +53,15 @@ describe("promisePipe", function() {
         });
     });
 
+    ["stdout", "stderr"].forEach(function(stdio) {
+        it("can pipe to " + stdio, function(done) {
+            var input = fs.createReadStream(INPUT);
+            promisePipe(input, process[stdio]).done(function() {
+                done();
+            });
+        });
+    });
+
     it("can handle errors from source", function(done) {
         var input = fs.createReadStream("bad");
         var output = fs.createWriteStream(OUTPUT);
