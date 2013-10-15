@@ -12,7 +12,12 @@ promisePipe(<readable stream>, [transform streams...], <writeable stream>)
 ```
 
 It returns a promise. On success the resolved value will be an array of the
-streams passed in.
+streams passed in. When rejected the an error object is created with following
+keys:
+
+  - `source`: The stream that caused the error
+  - `originalError`: Original error from the stream
+  - `message`: The error message from original error
 
 ## Example
 
