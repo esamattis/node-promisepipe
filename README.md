@@ -43,7 +43,7 @@ promisePipe(
 ## Why?
 
 Stream piping in node.js is cool, but error handling is not because streams
-do not bubble to the target streams.
+do not bubble errors to the target streams.
 
 For example if the previous example is written like this:
 
