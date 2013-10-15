@@ -37,7 +37,11 @@ describe("promisePipe", function() {
         var input = fs.createReadStream(INPUT);
         var output = fs.createWriteStream(OUTPUT);
 
-        promisePipe(input, output).done(function() {
+        promisePipe(input, output).done(function(pipeChain) {
+
+            assert.equal(input, pipeChain[0], "Resolved promise passes stream pipe chain back");
+            assert.equal(output, pipeChain[1]);
+
             fs.readFile(OUTPUT, function(err, data) {
                 if (err) {
                     return done(err);

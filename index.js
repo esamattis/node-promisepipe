@@ -28,11 +28,15 @@ function promiseFromStreams(streams) {
 
 function promisePipe() {
     var streams = Array.prototype.slice.call(arguments);
-    var promise = promiseFromStreams(streams);
 
-    var current = streams.shift();
+    var promise = promiseFromStreams(streams).then(function() {
+        return Q(streams);
+    });
+
+    var streamsStack = Array.prototype.slice.call(arguments);
+    var current = streamsStack.shift();
     var next;
-    while (next = streams.shift()) {
+    while (next = streamsStack.shift()) {
         current.pipe(next);
         current = next;
     }
