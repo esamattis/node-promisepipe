@@ -55,7 +55,8 @@ describe("promisePipe", function() {
 
         promisePipe(input, output).fail(function(err) {
             assert(err);
-            assert.equal(err.code, "ENOENT");
+            assert.equal(err.originalError.code, "ENOENT");
+            assert.equal(err.source, input);
             done();
         });
     });
@@ -66,7 +67,7 @@ describe("promisePipe", function() {
 
         promisePipe(input, output).fail(function(err) {
             assert(err);
-            assert.equal(err.code, "EACCES");
+            assert.equal(err.originalError.code, "EACCES");
             done();
         });
     });
@@ -94,7 +95,7 @@ describe("promisePipe", function() {
 
         promisePipe(input, new Upcase(), output).fail(function(err) {
             assert(err);
-            assert.equal(err.message, "X is not allowed");
+            assert.equal(err.originalError.message, "X is not allowed");
             done();
         });
     });

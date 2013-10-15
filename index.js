@@ -5,7 +5,12 @@ var Q = require("q");
 function promiseFromStreams(streams) {
     return Q.all(streams.map(function(stream) {
         return Q.promise(function(resolve, reject) {
-            stream.on("error", reject);
+            stream.on("error", function(streamErr) {
+                var err = new Error(streamErr.message);
+                err.source = stream;
+                err.originalError = streamErr;
+                reject(err);
+            });
 
             // This event fires when no more data will be provided.
             stream.on("end", resolve);
