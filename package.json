@@ -4,7 +4,7 @@
   "description": "Pipe node.js streams safely with Promises",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test.js"
   },
   "repository": {
     "type": "git",
