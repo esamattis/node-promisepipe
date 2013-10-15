@@ -1,5 +1,4 @@
 
-
 # promisePipe
 
 Safely pipe node.js streams while capturing all errors to a single promise.
@@ -68,5 +67,5 @@ fs.createReadStream(INPUT_FILE).on("error", function(err) {
 })
 ```
 
-Which is imo repeative and cumbersome.
+Which is imo repeative and cumbersome (at least when you want to use promises).
 
