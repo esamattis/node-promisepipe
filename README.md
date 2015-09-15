@@ -26,7 +26,7 @@ var promisePipe = require("promisepipe");
 promisePipe(
     fs.createReadStream(INPUT_FILE),
     new UpcaseTransform(),
-    fs.createReadStream(OUTPUT_FILE),
+    fs.createWriteStream(OUTPUT_FILE),
 ).then(function(streams){
     console.log("Yay, all streams are now closed/ended/finished!");
 }, function(err) {
