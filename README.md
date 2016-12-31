@@ -38,7 +38,7 @@ promisePipe(
 
 ## Install
 
-    npm instal promisepipe
+    npm install promisepipe
 
 ## Why?
 
