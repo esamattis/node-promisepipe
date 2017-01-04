@@ -20,10 +20,9 @@
   "bugs": {
     "url": "https://github.com/epeli/node-promisepipe/issues"
   },
-  "dependencies": {
-    "q": "~0.9.7"
-  },
   "devDependencies": {
-    "mocha": "~1.13.0"
-  }
+    "mocha": "^3.2.0",
+    "mz": "^2.6.0"
+  },
+  "dependencies": {}
 }

@@ -1,57 +1,43 @@
-
-var Q = require("q");
-
-
-function promiseFromStreams(streams) {
-    return Q.all(streams.map(function(stream) {
-        return Q.promise(function(resolve, reject) {
-
-            // process.stdout and process.stderr are not closed or ended
-            // after piping like other streams. So we must resolve them
-            // manually.
-            if (stream === process.stdout || stream === process.stderr) {
-                return resolve();
-            }
-
-            stream.on("error", function(streamErr) {
-                var err = new Error(streamErr.message);
-                err.source = stream;
-                err.originalError = streamErr;
-                reject(err);
-            });
-
-            // This event fires when no more data will be provided.
-            stream.on("end", resolve);
-
-            // Emitted when the underlying resource (for example, the backing file
-            // descriptor) has been closed. Not all streams will emit this.
-            stream.on("close", resolve);
-
-            // When the end() method has been called, and all data has been flushed
-            // to the underlying system, this event is emitted.
-            stream.on("finish", resolve);
-        });
-    }));
+class StreamError extends Error {
+  constructor(err, source) {
+    const { message = err } = err || {};
+    super(message);
+    this.source = source;
+    this.originalError = err;
+  }
 }
 
-function promisePipe() {
-    var streams = Array.prototype.slice.call(arguments);
+function streamPromise(stream) {
+  if (stream === process.stdout || stream === process.stderr) {
+    return Promise.resolve(stream);
+  }
 
-    var promise = promiseFromStreams(streams).then(function() {
-        return Q(streams);
-    });
-
-    var streamsStack = Array.prototype.slice.call(arguments);
-    var current = streamsStack.shift();
-    var next;
-    while (next = streamsStack.shift()) {
-        current.pipe(next);
-        current = next;
+  function on(evt) {
+    function executor(resolve, reject) {
+      const fn = evt === 'error' ?
+        err => reject(err) :
+        () => resolve(stream);
+      stream.on(evt, fn);
     }
 
-    return promise;
+    return new Promise(executor)
+      .catch(err => { throw new StreamError(err, stream) });
+  }
+
+  return Promise.race(['error', 'end', 'close', 'finish'].map(on));
 }
 
-promisePipe.justPromise = promiseFromStreams;
+function promisePipe(...streams) {
+  const allStreams = streams
+    .reduce((current, next) => current.concat(next), []);
 
-module.exports = promisePipe;
+  allStreams.reduce((current, next) => current.pipe(next));
+  return Promise.all(allStreams.map(streamPromise));
+}
+
+module.exports = Object.assign(promisePipe, {
+  __esModule: true,
+  default: promisePipe,
+  justPromise: streams => Promise.all(streams.map(streamPromise)),
+  StreamError,
+});

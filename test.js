@@ -1,7 +1,7 @@
 /*global it, describe, beforeEach */
 
 var stream = require("stream");
-var fs = require("fs");
+var fs = require("mz/fs");
 var assert = require("assert");
 var util = require("util");
 
@@ -12,6 +12,10 @@ var OUTPUT = __dirname + "/fixtures/output.txt";
 
 function Upcase(){
     stream.Transform.call(this);
+}
+
+function raise(err) {
+  throw err;
 }
 
 util.inherits(Upcase, stream.Transform);
@@ -27,91 +31,80 @@ Upcase.prototype._transform = function(chunk, encoding, cb) {
 
 describe("promisePipe", function() {
 
-    beforeEach(function(done) {
-        fs.unlink(OUTPUT, function(err) {
-            done();
-        });
+    beforeEach(function() {
+        return fs
+          .unlink(OUTPUT)
+          .catch(err => err.code === "ENOENT" || raise(err));
     });
 
-    it("can do basic piping", function(done) {
+    it("can do basic piping", function() {
         var input = fs.createReadStream(INPUT);
         var output = fs.createWriteStream(OUTPUT);
 
-        promisePipe(input, output).done(function(pipeChain) {
+        return promisePipe(input, output).then(function(pipeChain) {
 
             assert.equal(input, pipeChain[0], "Resolved promise passes stream pipe chain back");
             assert.equal(output, pipeChain[1]);
 
-            fs.readFile(OUTPUT, function(err, data) {
-                if (err) {
-                    return done(err);
-                }
-
-                assert.equal(data.toString().trim(), "foobar");
-                done();
-            });
+            return fs
+              .readFile(OUTPUT)
+              .then(data => assert.equal(data.toString().trim(), "foobar"));
         });
     });
 
     ["stdout", "stderr"].forEach(function(stdio) {
-        it("can pipe to " + stdio, function(done) {
+        it("can pipe to " + stdio, function() {
             var input = fs.createReadStream(INPUT);
-            promisePipe(input, process[stdio]).done(function() {
-                done();
-            });
+            return promisePipe(input, process[stdio]);
         });
     });
 
-    it("can handle errors from source", function(done) {
+    it("can handle errors from source", function() {
         var input = fs.createReadStream("bad");
         var output = fs.createWriteStream(OUTPUT);
 
-        promisePipe(input, output).fail(function(err) {
+        return promisePipe(input, output)
+          .catch(err => err)
+          .then(function(err) {
             assert(err);
             assert.equal(err.originalError.code, "ENOENT");
             assert.equal(err.source, input);
-            done();
-        });
+          });
     });
 
-    it("can handle errors from target", function(done) {
+    it("can handle errors from target", function() {
         var input = fs.createReadStream(INPUT);
         var output = fs.createWriteStream("/bad");
 
-        promisePipe(input, output).fail(function(err) {
+        return promisePipe(input, output)
+          .catch(err => err)
+          .then(function(err) {
             assert(err);
             assert.equal(err.originalError.code, "EACCES");
-            done();
-        });
+          });
     });
 
-    it("can pipe via transforms", function(done) {
+    it("can pipe via transforms", function() {
         var input = fs.createReadStream(INPUT);
         var output = fs.createWriteStream(OUTPUT);
 
-        promisePipe(input, new Upcase(), output).done(function() {
-            fs.readFile(OUTPUT, function(err, data) {
-                if (err) {
-                    return done(err);
-                }
-
-                assert.equal(data.toString().trim(), "FOOBAR");
-                done();
-            });
+        return promisePipe(input, new Upcase(), output).then(function() {
+            return fs
+              .readFile(OUTPUT)
+              .then(data => assert.equal(data.toString().trim(), "FOOBAR"));
         });
-        
     });
 
-    it("can handle errors from transforms", function(done) {
+    it("can handle errors from transforms", function() {
         var input = fs.createReadStream(INPUT + ".x");
         var output = fs.createWriteStream(OUTPUT);
 
-        promisePipe(input, new Upcase(), output).fail(function(err) {
+        return promisePipe(input, new Upcase(), output)
+          .catch(err => err)
+          .then(function(err) {
             assert(err);
             assert.equal(err.originalError.message, "X is not allowed");
-            done();
         });
     });
-
 });
 
