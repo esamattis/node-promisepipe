@@ -15,13 +15,12 @@ function streamPromise(stream) {
   function on(evt) {
     function executor(resolve, reject) {
       const fn = evt === 'error' ?
-        err => reject(err) :
+        err => reject(new StreamError(err, stream)) :
         () => resolve(stream);
       stream.on(evt, fn);
     }
 
-    return new Promise(executor)
-      .catch(err => { throw new StreamError(err, stream) });
+    return new Promise(executor);
   }
 
   return Promise.race(['error', 'end', 'close', 'finish'].map(on));
