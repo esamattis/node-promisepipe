@@ -9,7 +9,7 @@ Safely pipe node.js streams while capturing all errors to a single promise.
 promisePipe(<readable stream>, [transform streams...], <writeable stream>)
 ```
 
-It returns a promise. On success the resolved value will be an array of the
+It returns a native promise. On success the resolved value will be an array of the
 streams passed in. When rejected an error object is created with following
 keys:
 
