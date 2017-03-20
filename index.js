@@ -1,3 +1,5 @@
+'use strict'
+
 class StreamError extends Error {
   constructor(err, source) {
     const { message = err } = err || {};
