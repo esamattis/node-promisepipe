@@ -2,7 +2,7 @@
 
 class StreamError extends Error {
   constructor(err, source) {
-    const { message = err } = err || {};
+    const message = err && err.message || err;
     super(message);
     this.source = source;
     this.originalError = err;
