@@ -28,7 +28,14 @@ function streamPromise(stream) {
   return Promise.race(['error', 'end', 'close', 'finish'].map(on));
 }
 
-function promisePipe(...streams) {
+/**
+ * @param {...Stream} stream
+ */
+function promisePipe(stream) {
+  let i = arguments.length;
+  const streams = [];
+  while ( i-- ) streams[i] = arguments[i];
+
   const allStreams = streams
     .reduce((current, next) => current.concat(next), []);
 
