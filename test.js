@@ -6,6 +6,7 @@ var assert = require("assert");
 var util = require("util");
 
 var promisePipe = require("./index");
+var StreamError = promisePipe.StreamError;
 
 var INPUT = __dirname + "/fixtures/input.txt";
 var OUTPUT = __dirname + "/fixtures/output.txt";
@@ -109,3 +110,19 @@ describe("promisePipe", function() {
     });
 });
 
+describe('StreamError', function() {
+    it('uses the provided error message', function() {
+        var err = new StreamError({message: 'foo'});
+        assert.equal(err.message,'foo');
+    });
+
+    it('uses assign message as error string param', function() {
+        var err = new StreamError('foo');
+        assert.equal(err.message,'foo');
+    });
+
+    it('should not throw if no message', function() {
+        var err = new StreamError();
+        assert.equal(err.message,'');
+    });
+});

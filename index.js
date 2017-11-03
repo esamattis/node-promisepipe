@@ -1,8 +1,8 @@
-'use strict'
+'use strict';
 
 class StreamError extends Error {
   constructor(err, source) {
-    const { message = err } = err || {};
+    const message = err && err.message || err;
     super(message);
     this.source = source;
     this.originalError = err;
@@ -40,7 +40,14 @@ function streamPromise(streams, i) {
   return Promise.race(events.map(on));
 }
 
-function promisePipe(...streams) {
+/**
+ * @param {...Stream} stream
+ */
+function promisePipe(stream) {
+  let i = arguments.length;
+  const streams = [];
+  while ( i-- ) streams[i] = arguments[i];
+
   const allStreams = streams
     .reduce((current, next) => current.concat(next), []);
 
