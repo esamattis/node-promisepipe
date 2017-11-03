@@ -1,6 +1,6 @@
 {
   "name": "promisepipe",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Pipe node.js streams safely with Promises",
   "main": "index.js",
   "scripts": {
