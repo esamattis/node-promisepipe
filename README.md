@@ -24,7 +24,6 @@ this function.
 ## Example
 
 ```javascript
-
 var promisePipe = require("promisepipe");
 
 promisePipe(
@@ -37,6 +36,26 @@ promisePipe(
     console.log("This stream failed:", err.source);
     console.log("Original error was:", err.originalError);
 });
+```
+
+or with async-wait
+
+```javascript
+var promisePipe = require("promisepipe");
+
+(async () => {
+  try {
+    await promisePipe(
+      fs.createReadStream(INPUT_FILE),
+      new UpcaseTransform(),
+      fs.createWriteStream(OUTPUT_FILE)
+    );
+    console.log("Yay, all streams are now closed/ended/finished!");
+  } catch (error) {
+    console.log("This stream failed:", err.source);
+    console.log("Original error was:", err.originalError);
+  }
+})();
 
 ```
 
