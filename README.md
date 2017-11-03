@@ -17,6 +17,10 @@ keys:
   - `originalError`: Original error from the stream
   - `message`: The error message from original error
 
+Notice that the `promisePipe` function installs handlers for some events and cancels
+them upon return, and this may include any event handler you installed before calling
+this function.
+
 ## Example
 
 ```javascript

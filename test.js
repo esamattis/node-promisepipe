@@ -23,6 +23,7 @@ util.inherits(Upcase, stream.Transform);
 Upcase.prototype._transform = function(chunk, encoding, cb) {
     if (/X/.test(chunk.toString())) {
         cb(new Error("X is not allowed"));
+        return;
     }
 
     this.push(chunk.toString().toUpperCase());
