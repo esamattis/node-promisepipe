@@ -9,35 +9,40 @@ class StreamError extends Error {
   }
 }
 
-const events = ['error', 'end', 'close', 'finish'];
-
 // TODO: only remove the handlers we installed
 function cleanupEventHandlers(streams) {
-  streams.forEach(s => events.map(e => s.removeAllListeners(e)));
+  const lastStream = streams[streams.length - 1];
+  streams.forEach(s => s.removeAllListeners('error'));
+  lastStream.removeAllListeners('finish');
 }
 
-function streamPromise(streams, i) {
-  const stream = streams[i];
-
-  if (stream === process.stdout || stream === process.stderr) {
-    return Promise.resolve(stream);
-  }
-
-  function on(evt) {
-    function executor(resolve, reject) {
-      const fn = evt === 'error' ?
-        err => {
-          cleanupEventHandlers(streams);
-          reject(new StreamError(err, stream))
+// Returns a promise that is accepted when the pipe operation is done.
+function streamPromise(streams) {
+  // There only two events that interest us:
+  // * A 'finish' event emitted by the last stream in the chain, which means
+  // the chained pipe operations are done, and the last stream has been
+  // flushed and ended.
+  // * An 'error' event from any stream, when something goes wrong.
+  return Promise.race([
+    new Promise((accept, reject) => {
+      const stream = streams[streams.length - 1];
+      if (stream === process.stdout || stream === process.stderr) {
+        accept();
+      }
+      stream.once('finish', accept);
+    }),
+    Promise.all(streams.map(
+      stream => new Promise((accept, reject) => {
+        if (stream === process.stdout || stream === process.stderr) {
+          accept();
         }
-        : () => resolve(stream);
-      stream.on(evt, fn);
-    }
-
-    return new Promise(executor);
-  }
-
-  return Promise.race(events.map(on));
+        stream.once('error', err => reject(new StreamError(err, stream)));
+      })
+    ))
+  ]).then(() => {
+    cleanupEventHandlers(streams);
+    return streams;
+  });
 }
 
 /**
@@ -50,21 +55,14 @@ function promisePipe(stream) {
 
   const allStreams = streams
     .reduce((current, next) => current.concat(next), []);
-
+  const promise = streamPromise(streams);
   allStreams.reduce((current, next) => current.pipe(next));
-  return Promise.all(allStreams.map(
-    (value, i) => streamPromise(allStreams, i)
-  )).then((streams) => {
-    cleanupEventHandlers(streams);
-    return streams;
-  });
+  return promise;
 }
 
 module.exports = Object.assign(promisePipe, {
   __esModule: true,
   default: promisePipe,
-  justPromise: streams => Promise.all(streams.map((_, i) => {
-    return streamPromise(streams, i)
-  })),
+  justPromise: streamPromise,
   StreamError,
 });
