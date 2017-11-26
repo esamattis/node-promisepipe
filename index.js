@@ -25,7 +25,7 @@ function streamPromise(stream) {
       const fn = evt === 'error' ?
         err => reject(new StreamError(err, stream)) :
         () => {
-          cleanupEventHandlers(stream, on);
+          cleanupEventHandlers(stream, fn);
           resolve(stream);
         };
       stream.on(evt, fn);
