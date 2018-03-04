@@ -2,6 +2,9 @@
 
 Safely pipe node.js streams while capturing all errors to a single promise.
 
+## Install
+
+    npm install promisepipe
 
 ## API
 
@@ -58,10 +61,6 @@ var promisePipe = require("promisepipe");
 })();
 
 ```
-
-## Install
-
-    npm install promisepipe
 
 ## Why?
 
