@@ -88,5 +88,5 @@ fs.createReadStream(INPUT_FILE).on("error", function(err) {
 })
 ```
 
-Which is imo repeative and cumbersome (at least when you want to use promises).
-
+Handling errors this way can be very cumbersome. `promisepipe` simplifies
+error handling by sending the first error occurance into a promise.
