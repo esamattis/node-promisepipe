@@ -71,8 +71,8 @@ For example if the previous example is written like this:
 
 ```javascript
 fs.createReadStream(INPUT_FILE)
-.pipe(new UpcaseTransform())
-.pipe(fs.createReadStream(OUTPUT_FILE))
+  .pipe(new UpcaseTransform())
+  .pipe(fs.createReadStream(OUTPUT_FILE))
 ```
 
 It might crash your program at any time. You must handle the errors
