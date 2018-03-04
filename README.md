@@ -31,7 +31,7 @@ promisePipe(
     new UpcaseTransform(),
     fs.createWriteStream(OUTPUT_FILE),
 ).then(function(streams){
-    console.log("Yay, all streams are now closed/ended/finished!");
+    console.log("Done writing to the output file stream!");
 }, function(err) {
     console.log("This stream failed:", err.source);
     console.log("Original error was:", err.originalError);
@@ -50,8 +50,8 @@ var promisePipe = require("promisepipe");
       new UpcaseTransform(),
       fs.createWriteStream(OUTPUT_FILE)
     );
-    console.log("Yay, all streams are now closed/ended/finished!");
-  } catch (error) {
+    console.log("Done writing to the output file stream!");
+  } catch (err) {
     console.log("This stream failed:", err.source);
     console.log("Original error was:", err.originalError);
   }
