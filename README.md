@@ -2,6 +2,9 @@
 
 Safely pipe node.js streams while capturing all errors to a single promise.
 
+## Install
+
+    npm install promisepipe
 
 ## API
 
@@ -31,7 +34,7 @@ promisePipe(
     new UpcaseTransform(),
     fs.createWriteStream(OUTPUT_FILE),
 ).then(function(streams){
-    console.log("Yay, all streams are now closed/ended/finished!");
+    console.log("Done writing to the output file stream!");
 }, function(err) {
     console.log("This stream failed:", err.source);
     console.log("Original error was:", err.originalError);
@@ -50,18 +53,14 @@ var promisePipe = require("promisepipe");
       new UpcaseTransform(),
       fs.createWriteStream(OUTPUT_FILE)
     );
-    console.log("Yay, all streams are now closed/ended/finished!");
-  } catch (error) {
+    console.log("Done writing to the output file stream!");
+  } catch (err) {
     console.log("This stream failed:", err.source);
     console.log("Original error was:", err.originalError);
   }
 })();
 
 ```
-
-## Install
-
-    npm install promisepipe
 
 ## Why?
 
@@ -72,8 +71,8 @@ For example if the previous example is written like this:
 
 ```javascript
 fs.createReadStream(INPUT_FILE)
-.pipe(new UpcaseTransform())
-.pipe(fs.createReadStream(OUTPUT_FILE))
+  .pipe(new UpcaseTransform())
+  .pipe(fs.createReadStream(OUTPUT_FILE))
 ```
 
 It might crash your program at any time. You must handle the errors
@@ -89,5 +88,5 @@ fs.createReadStream(INPUT_FILE).on("error", function(err) {
 })
 ```
 
-Which is imo repeative and cumbersome (at least when you want to use promises).
-
+Handling errors this way can be very cumbersome. `promisepipe` simplifies
+error handling by sending the first error occurance into a promise.
