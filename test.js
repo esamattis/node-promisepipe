@@ -15,11 +15,16 @@ function Upcase(){
     stream.Transform.call(this);
 }
 
+function W () {
+    stream.Writable.call(this);
+}
+
 function raise(err) {
   throw err;
 }
 
 util.inherits(Upcase, stream.Transform);
+util.inherits(W, stream.Writable);
 
 Upcase.prototype._transform = function(chunk, encoding, cb) {
     if (/X/.test(chunk.toString())) {
@@ -29,6 +34,11 @@ Upcase.prototype._transform = function(chunk, encoding, cb) {
 
     this.push(chunk.toString().toUpperCase());
     cb();
+};
+
+W.prototype._write = function () {
+    this.emit("error", new Error("Write failed"));
+    this.emit("error", new Error("Write failed"));
 };
 
 describe("promisePipe", function() {
@@ -106,6 +116,17 @@ describe("promisePipe", function() {
           .then(function(err) {
             assert(err);
             assert.equal(err.originalError.message, "X is not allowed");
+        });
+    });
+
+    it("can handle multiple errors", function() {
+        var input = fs.createReadStream(INPUT);
+
+        return promisePipe(input, new W())
+          .catch(err => err)
+          .then(function(err) {
+            assert(err);
+            assert.equal(err.originalError.message, "Write failed");
         });
     });
 });
