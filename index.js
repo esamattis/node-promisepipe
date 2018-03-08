@@ -9,16 +9,20 @@ class StreamError extends Error {
   }
 }
 
-const events = ['error', 'end', 'close', 'finish'];
+const allEvents = ['error', 'end', 'close', 'finish'];
+const writableEvents = ['error', 'close', 'finish'];
+const readableEvents = ['error', 'end', 'close'];
 
 function cleanupEventHandlers(stream, listener) {
-  events.map(e => stream.removeListener(e, listener));
+  allEvents.map(e => stream.removeListener(e, listener));
 }
 
 function streamPromise(stream) {
   if (stream === process.stdout || stream === process.stderr) {
     return Promise.resolve(stream);
   }
+
+  const events = stream.readable ? readableEvents : writableEvents;
 
   function on(evt) {
     function executor(resolve, reject) {

@@ -31,9 +31,19 @@ Upcase.prototype._transform = function(chunk, encoding, cb) {
         cb(new Error("X is not allowed"));
         return;
     }
-
+    this.str = (this.str || '') + chunk.toString()
     this.push(chunk.toString().toUpperCase());
     cb();
+};
+
+Upcase.prototype._flush = function(cb) {
+    setTimeout(() => {
+        if (/Y/.test(this.str)) {
+            cb(new Error("Y is not allowed"));
+            return;
+        }
+        cb()
+    }, 1);
 };
 
 W.prototype._write = function () {
@@ -129,6 +139,19 @@ describe("promisePipe", function() {
           .then(function(err) {
             assert(err);
             assert.equal(err.originalError.message, "X is not allowed");
+        });
+    });
+
+    it("can handle errors from _flush in transforms", function() {
+        var input = fs.createReadStream(INPUT + ".y");
+        var output = fs.createWriteStream(OUTPUT);
+
+        const upcase = new Upcase()
+        return promisePipe(input, upcase, output)
+          .catch(err => err)
+          .then(function(err) {
+            assert(err);
+            assert.equal(err.originalError.message, "Y is not allowed");
         });
     });
 
