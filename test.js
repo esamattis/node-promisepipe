@@ -31,7 +31,7 @@ Upcase.prototype._transform = function(chunk, encoding, cb) {
         cb(new Error("X is not allowed"));
         return;
     }
-    this.str = (this.str || '') + chunk.toString()
+    this.str = (this.str || '') + chunk.toString();
     this.push(chunk.toString().toUpperCase());
     cb();
 };
