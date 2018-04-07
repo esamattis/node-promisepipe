@@ -22,7 +22,9 @@ function streamPromise(stream) {
     return Promise.resolve(stream);
   }
 
-  const events = typeof stream._read === 'function' ? readableEvents : writableEvents; // see https://github.com/epeli/node-promisepipe/issues/2
+  // see https://github.com/epeli/node-promisepipe/issues/2
+  // and https://github.com/epeli/node-promisepipe/issues/15
+  const events = stream.readable || typeof stream._read === 'function' ? readableEvents : writableEvents;
 
   function on(evt) {
     function executor(resolve, reject) {
