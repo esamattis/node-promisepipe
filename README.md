@@ -19,6 +19,8 @@ keys:
   - `source`: The stream that caused the error
   - `originalError`: Original error from the stream
   - `message`: The error message from original error
+  
+Note: the last stream in the chain needs to be a writable stream, not a duplex/transform stream. If you use a 3rd party library which returns deplux streams instead of writable streams, you'll need to add something like [`.pipe(devnull())`](https://www.npmjs.com/package/dev-null) to the end, otherwise the promise will never resolve ([#16](https://github.com/epeli/node-promisepipe/issues/16)).
 
 ## Example
 
