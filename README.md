@@ -22,6 +22,8 @@ keys:
   
 Note: the last stream in the chain needs to be a writable stream, not a duplex/transform stream. If you use a 3rd party library which returns deplux streams instead of writable streams, you'll need to add something like [`.pipe(devnull())`](https://www.npmjs.com/package/dev-null) to the end, otherwise the promise will never resolve ([#16](https://github.com/epeli/node-promisepipe/issues/16)).
 
+Starting with v3, all streams are destroyed if there's an error to prevent memory leaks.
+
 ## Example
 
 ```javascript
