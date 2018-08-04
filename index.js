@@ -9,28 +9,33 @@ class StreamError extends Error {
   }
 }
 
-const allEvents = ['error', 'end', 'close', 'finish'];
-const writableEvents = ['error', 'close', 'finish'];
-const readableEvents = ['error', 'end', 'close'];
+const events = ['error', 'end', 'close', 'finish'];
 
 function cleanupEventHandlers(stream, listener) {
-  allEvents.map(e => stream.removeListener(e, listener));
+  events.map(e => stream.removeListener(e, listener));
 }
 
-function streamPromise(stream) {
+function streamPromise(stream, state) {
   if (stream === process.stdout || stream === process.stderr) {
     return Promise.resolve(stream);
   }
 
   // see https://github.com/epeli/node-promisepipe/issues/2
   // and https://github.com/epeli/node-promisepipe/issues/15
-  const events = stream.readable || typeof stream._read === 'function' ? readableEvents : writableEvents;
+  const isReadable = stream.readable || typeof stream._read === 'function';
 
   function on(evt) {
     function executor(resolve, reject) {
       const fn = evt === 'error' ?
         err => reject(new StreamError(err, stream)) :
         () => {
+          // For readable streams, we ignore the "finish" event. However, if there
+          // already was an error on another stream, the "end" event may never come,
+          // so in that case we accept "finish" too.
+          if (isReadable && evt === 'finish' && !state.error) {
+            return;
+          }
+
           cleanupEventHandlers(stream, fn);
           resolve(stream);
         };
@@ -55,12 +60,37 @@ function promisePipe(stream) {
     .reduce((current, next) => current.concat(next), []);
 
   allStreams.reduce((current, next) => current.pipe(next));
-  return Promise.all(allStreams.map(streamPromise));
+  return allStreamsDone(streams);
+}
+
+function allStreamsDone(allStreams) {
+  let state = {};
+  let firstRejection;
+
+  return Promise.all(allStreams.map(stream => streamPromise(stream, state).catch((e) => {
+    if (!firstRejection) {
+      firstRejection = e;
+      state.error = true;
+
+      // Close all streams as they are not closed automatically on error.
+      allStreams.forEach(stream => {
+        if (stream !== process.stdout && stream !== process.stderr) {
+          stream.destroy();
+        }
+      });
+    }
+  }))).then((allResults) => {
+		if (firstRejection) {
+			throw firstRejection;
+		}
+
+		return allResults;
+	});
 }
 
 module.exports = Object.assign(promisePipe, {
   __esModule: true,
   default: promisePipe,
-  justPromise: streams => Promise.all(streams.map(streamPromise)),
+  justPromise: streams => allStreamsDone(streams),
   StreamError,
 });

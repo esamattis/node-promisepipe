@@ -115,7 +115,7 @@ describe("promisePipe", function() {
           .catch(err => err)
           .then(function(err) {
             assert(err);
-            assert.equal(err.originalError.code, "EACCES");
+            assert.ok([ "EACCES", "EPERM" ].includes(err.originalError.code));
           });
     });
 
@@ -164,6 +164,29 @@ describe("promisePipe", function() {
             assert(err);
             assert.equal(err.originalError.message, "Write failed");
         });
+    });
+
+    it("closes streams on errors", function() {
+        var input = fs.createReadStream(INPUT + ".x");
+        var output = fs.createWriteStream(OUTPUT);
+
+        return promisePipe(input, new Upcase(), output)
+          .catch(err => err)
+          .then(function() {
+            return fs.unlink(OUTPUT);
+          });
+    });
+
+    it("resolves chains with transform streams on error", function() {
+        var input = fs.createReadStream(INPUT);
+        var output = fs.createWriteStream("/bad");
+
+        return promisePipe(input, new Upcase(), output)
+          .catch(err => err)
+          .then(function(err) {
+            assert(err);
+            assert.ok([ "EACCES", "EPERM" ].includes(err.originalError.code));
+          });
     });
 });
 
